@@ -1,0 +1,24 @@
+{
+  "name": "chromecast-media-controls",
+  "version": "1.0.0",
+  "main": "build",
+  "repository": "git@github.com:FrancescoCioria/chromecast-media-controls-api.git",
+  "author": "Francesco Cioria <firefelix@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "yarn tsc"
+  },
+  "dependencies": {
+    "castv2-client": "^1.2.0",
+    "debug": "^4.3.1",
+    "mime": "^2.5.2",
+    "multicast-dns": "^7.2.2"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/mime": "^2.0.3",
+    "@types/node": "^14.14.35",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  }
+}

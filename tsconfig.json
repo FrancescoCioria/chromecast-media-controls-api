@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "strict": true,
+    "pretty": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "build"
+  },
+  "include": ["src", "typings"],
+  "exclude": ["test"],
+}
