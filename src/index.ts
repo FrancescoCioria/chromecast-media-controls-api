@@ -25,6 +25,7 @@ const promisifyClient = (client: _Client): ClientPromisified => {
     connect: promisify(client.connect).bind(client),
     getSessions: promisify(client.getSessions).bind(client),
     join: promisify(client.join).bind(client),
+    stop: promisify(client.stop).bind(client),
     close: promisify(client.close).bind(client),
     getVolume: promisify(client.getVolume).bind(client),
     setVolume: promisify(client.setVolume).bind(client)
@@ -157,8 +158,11 @@ export class ChromecastMediaControls {
   stop = async () => {
     this.throwIfClientIsNotInitialized();
 
-    const player = await this.player();
-    return player.stop();
+    const session = await getCurrentSession(this.client!);
+    this.client!.stop({
+      close: () => {}, // fake
+      session
+    });
   };
 
   seek = async (seconds: number) => {
