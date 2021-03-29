@@ -114,6 +114,8 @@ export const findChromecastDevice = async (): Promise<ChromecastDevice> => {
   });
 };
 
+export { Client };
+
 export class ChromecastMediaControls {
   client: Client | null = null;
 

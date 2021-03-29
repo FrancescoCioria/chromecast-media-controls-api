@@ -5,6 +5,7 @@
     "pretty": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "declaration": true,
     "outDir": "build"
   },
   "include": ["src", "typings"],
