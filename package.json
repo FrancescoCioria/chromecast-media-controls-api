@@ -1,6 +1,6 @@
 {
   "name": "chromecast-media-controls",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "main": "build",
   "repository": "git@github.com:FrancescoCioria/chromecast-media-controls-api.git",
   "author": "Francesco Cioria <firefelix@gmail.com>",
