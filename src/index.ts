@@ -170,6 +170,11 @@ export class ChromecastMediaControls {
     this.throwIfClientIsNotInitialized();
 
     const sessions = await this.client!.getSessions();
+
+    if (sessions.length === 0) {
+      throw new Error("No session available");
+    }
+
     return sessions[0];
   };
 
@@ -260,9 +265,11 @@ export class ChromecastMediaControls {
       }
     });
 
-    const session = await this.session();
+    try {
+      const session = await this.session();
 
-    // force fetching current media session, if any
-    initializePlayer(client, session);
+      // force fetching current media session, if any
+      initializePlayer(client, session);
+    } catch (e) {}
   };
 }
