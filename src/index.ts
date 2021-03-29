@@ -121,7 +121,8 @@ export class ChromecastMediaControls {
 
   onError: (err: Error) => void;
   onDisconnect: () => void;
-  isClosingConnection: boolean = false;
+
+  private isClosingConnection: boolean = false;
 
   constructor(opt: {
     onError: (err: Error) => void;
