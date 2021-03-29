@@ -114,13 +114,6 @@ export const findChromecastDevice = async (): Promise<ChromecastDevice> => {
   });
 };
 
-export const getCurrentSession = async (
-  client: Client
-): Promise<ClientSession> => {
-  const sessions = await client.getSessions();
-  return sessions[0];
-};
-
 export class ChromecastMediaControls {
   client: Client | null = null;
 
@@ -174,7 +167,8 @@ export class ChromecastMediaControls {
   session = async () => {
     this.throwIfClientIsNotInitialized();
 
-    return getCurrentSession(this.client!);
+    const sessions = await this.client!.getSessions();
+    return sessions[0];
   };
 
   player = async () => {
