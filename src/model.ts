@@ -47,7 +47,7 @@ export type _Client = {
     app: { close: () => void; session: ClientSession },
     cb: Callback<void>
   ) => Promise<void>;
-  close: (cb: Callback<void>) => void;
+  close: () => void;
   getVolume: (cb: Callback<Volume>) => void;
   setVolume: (opt: Partial<Volume>, callback: Callback<void>) => void;
 };
@@ -59,7 +59,7 @@ export type ClientPromisified = {
   getSessions: () => Promise<ClientSession[]>;
   join: (session: ClientSession, app: unknown) => Promise<_Player>;
   stop: (app: { close: () => void; session: ClientSession }) => Promise<void>;
-  close: () => Promise<void>;
+  close: () => void;
   getVolume: () => Promise<Volume>;
   setVolume: (opt: Partial<Volume>) => Promise<void>;
 };

@@ -1,4 +1,3 @@
-import Debug from "debug";
 import { promisify } from "util";
 import {
   ChromecastDevice,
@@ -15,7 +14,6 @@ import { timeoutPromise } from "./utils";
 const MDNS = require("multicast-dns");
 const { Client, DefaultMediaReceiver } = require("castv2-client");
 
-const debug = Debug("chromecast-media-controls");
 const mdns = MDNS();
 
 const promisifyClient = (client: _Client): ClientPromisified => {
@@ -26,7 +24,7 @@ const promisifyClient = (client: _Client): ClientPromisified => {
     getSessions: promisify(client.getSessions).bind(client),
     join: promisify(client.join).bind(client),
     stop: promisify(client.stop).bind(client),
-    close: promisify(client.close).bind(client),
+    close: client.close.bind(client),
     getVolume: promisify(client.getVolume).bind(client),
     setVolume: promisify(client.setVolume).bind(client)
   };
@@ -35,9 +33,9 @@ const promisifyClient = (client: _Client): ClientPromisified => {
 const initializeClient = async (host: string): Promise<ClientPromisified> => {
   const client = promisifyClient(new Client());
 
-  debug("Connecting to device: " + host);
+  console.log("Connecting to device: " + host);
   await client.connect(host);
-  debug("Connected");
+  console.log("Connected");
 
   return client;
 };
@@ -126,18 +124,63 @@ export const getCurrentSession = async (
 export class ChromecastMediaControls {
   client: Client | null = null;
 
+  onError: (err: Error) => void;
+  onDisconnect: () => void;
+  isClosingConnection: boolean = false;
+
+  constructor(opt: {
+    onError: (err: Error) => void;
+    onDisconnect: () => void;
+  }) {
+    this.onError = opt.onError;
+    this.onDisconnect = opt.onDisconnect;
+  }
+
   private throwIfClientIsNotInitialized() {
     if (this.client === null) {
       throw new Error(
         "The chromecast client is NULL. Please call ChromecastMediaControls.initialize() before any other operation."
       );
+    } else if (!this.isConnected()) {
+      throw new Error(
+        "There isn't an active connection to a chromecast device. Please call ChromecastMediaControls.initialize() before any other operation."
+      );
     }
   }
+
+  closeConnection = async (): Promise<void> => {
+    this.throwIfClientIsNotInitialized();
+
+    return timeoutPromise(
+      new Promise<void>(resolve => {
+        this.isClosingConnection = true;
+        this.client!._client.client.once("close", () => {
+          resolve();
+        });
+
+        this.client!.close();
+      }),
+      1000
+    ).then(() => {
+      this.isClosingConnection = false;
+      this.client = null;
+    });
+  };
+
+  isConnected = (): boolean => {
+    return this.client !== null && this.client._client.connection !== null;
+  };
+
+  session = async () => {
+    this.throwIfClientIsNotInitialized();
+
+    return getCurrentSession(this.client!);
+  };
 
   player = async () => {
     this.throwIfClientIsNotInitialized();
 
-    const session = await getCurrentSession(this.client!);
+    const session = await this.session();
     return initializePlayer(this.client!, session);
   };
 
@@ -158,7 +201,7 @@ export class ChromecastMediaControls {
   stop = async () => {
     this.throwIfClientIsNotInitialized();
 
-    const session = await getCurrentSession(this.client!);
+    const session = await this.session();
     this.client!.stop({
       close: () => {}, // fake
       session
@@ -201,9 +244,9 @@ export class ChromecastMediaControls {
     return this.client!.setVolume(opt);
   };
 
-  initialize = async (onError: (err: Error) => void) => {
-    if (this.client) {
-      this.clear();
+  initialize = async () => {
+    if (this.isConnected()) {
+      await this.closeConnection();
     }
 
     const { host } = await findChromecastDevice();
@@ -212,20 +255,18 @@ export class ChromecastMediaControls {
     this.client = client;
 
     client.on("error", err => {
-      debug("Error: %s", err.message);
-      onError(err);
+      this.onError(err);
     });
 
-    const session = await getCurrentSession(client);
+    this.client._client.client.once("close", () => {
+      if (!this.isClosingConnection) {
+        this.onDisconnect();
+      }
+    });
+
+    const session = await this.session();
 
     // force fetching current media session, if any
     initializePlayer(client, session);
-  };
-
-  clear = async () => {
-    if (this.client) {
-      this.client.close();
-      this.client = null;
-    }
   };
 }
